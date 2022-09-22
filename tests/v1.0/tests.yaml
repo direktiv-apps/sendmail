@@ -1,0 +1,25 @@
+url: ""
+functions:
+- type: knative-workflow
+  id: sendmail
+  image: gcr.io/direktiv/functions/sendmail:test
+states:
+- id: state0
+  type: action
+  action:
+    function: sendmail
+    input:
+      commands:
+      - command: Example of running sendmail
+  transition: state1
+- id: state1
+  type: action
+  action:
+    function: sendmail
+    input:
+      commands:
+      - command: Example of running sendmail
+      files:
+      - data: Hello World
+        mode: "0755"
+        name: hello.txt

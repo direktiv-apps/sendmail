@@ -1,0 +1,229 @@
+swagger: "2.0"
+info:
+  description: Run sendmail in Direktiv
+  title: sendmail
+  version: "1.0"
+  x-direktiv-meta:
+    container: gcr.io/direktiv/functions/sendmail
+    maintainer: |-
+      [direktiv.io](https://www.direktiv.io) 
+    issues: https://github.com/direktiv-apps/sendmail/issues
+    url: https://github.com/direktiv-apps/sendmail  
+    categories:
+    - unknown
+    license: |-
+      [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0)
+    long-description: >-
+      Run sendmail in Direktiv as a function
+consumes:
+- application/json
+produces:
+- application/json
+schemes:
+- http
+paths:
+  /: 
+    delete:
+      parameters:
+        - name: Direktiv-ActionID
+          in: header
+          type: string
+          description: |
+            On cancel Direktiv sends a DELETE request to
+            the action with id in the header
+      x-direktiv:
+        cancel: echo 'cancel {{ .DirektivActionID }}'
+      responses:
+        200:
+    post:
+      parameters:
+        - name: Direktiv-ActionID
+          in: header
+          type: string
+          default: development
+          description: |
+            direktiv action id is an UUID. 
+            For development it can be set to 'development'
+        - name: Direktiv-TempDir
+          in: header
+          type: string
+          default: /tmp
+          description: |
+            direktiv temp dir is the working directory for that request
+            For development it can be set to e.g. '/tmp'
+        - name: body
+          in: body
+          schema:
+            type: object
+            required: ["smtp", "emails"]
+            properties:
+              smtp:
+                type: object
+                required: ["server", "user", "password"]
+                properties:
+                  server:
+                    type: string
+                    description: SMTP server address
+                    example: smtp.sendgrid.net:587 
+                  user: 
+                    type: string
+                    description: User name for the SMTP server
+                  password:
+                    type: string
+                    description: Password for the SMTP server
+              emails:
+                type: array
+                description: List of emails to send.
+                items:
+                  type: object
+                  required: ["from", "to"]
+                  properties:
+                    from:
+                      type: string
+                      description: Name used as `from` value, e.g. "My Name\<myname@direktiv.io\>"
+                    to: 
+                      type: array
+                      description: Email addresses to send email to
+                      items:
+                        type: string
+                    cc: 
+                      type: array
+                      description: Email addresses to send email to (carbon copy)
+                      items:
+                        type: string
+                    bcc: 
+                      type: array
+                      description: Email addresses to send email to (blind copy)
+                      items:
+                        type: string
+                    subject:
+                      type: string
+                      description: Subject of the email
+                    message:
+                      $ref: '#/definitions/direktivFile'
+                      # type: string
+                      # description: Email message. JQ can be used in the text.
+                      # format: byte
+                    attachments:
+                      type: array
+                      items:
+                        type: string
+                      description: Files to attach to the email. Can be provided with Direktiv action `files`
+                    verbose:
+                      type: boolean
+                      description: Enable debug output
+
+
+      # direktiv code generation is configured here
+      x-direktiv-function: |-
+        functions:
+        - id: sendmail
+          image: gcr.io/direktiv/functions/sendmail:1.0
+          type: knative-workflow
+      x-direktiv-examples:
+        # ADD MORE EXAMPLES HERE
+        - title: Basic
+          content: |-
+            - id: sendmail
+              type: action
+              action:
+                function: sendmail
+                input: 
+                  commands:
+                  - command: Example of running sendmail
+        - title: Advanced
+          content: |-
+            - id: sendmail
+              type: action
+              action:
+                function: sendmail
+                input: 
+                  files:
+                  - name: hello.txt
+                    data: Hello World
+                    mode: '0755'
+                  commands:
+                  - command: Example of running sendmail
+      x-direktiv-secrets:
+        - name: smtppwd
+          description: SMTP password
+      x-direktiv:  
+        # debug: true
+        cmds:
+        - action: exec
+          exec: /replace.sh '{{ .SMTP.Server }}' '{{ .SMTP.User }}' '{{ .SMTP.Password }}'
+          print: false
+          silent: true
+        # - action: exec
+        #   exec: bash -c 'echo {{ .SMTP.Server }}'
+        #   print: true
+        #   silent: false
+
+        - action: foreach
+          loop: .Emails
+          exec: |- 
+            bash -c 'cat message | s-nail -v -r "{{ .Item.From }}"  -A mail -s "{{ .Item.Subject }}"  
+            {{- range $i, $a := .Item.To }} {{ $a }} {{- end }}'
+          env: ["MAILRC=account.config"]
+          print: true
+          silent: false
+        # - action: exec
+        #   exec: ls -la
+        # # output: |
+        #   {
+        #     "sendmail": {{ index . 0 | toJson }}
+        #   }
+      x-direktiv-errors:
+        io.direktiv.command.error: Command execution failed
+        io.direktiv.output.error: Template error for output generation of the service
+        io.direktiv.ri.error: Can not create information object from request
+      responses:
+        200:
+          description: List of executed commands.
+          examples:
+            sendmail:
+            - result: # EXAMPLE RESULT HERE
+              success: true
+            - result: #  EXAMPLE RESULT HERE
+              success: true
+          schema:
+            type: object
+            properties:
+              sendmail:
+                type: array
+                items:
+                  type: object
+                  required:
+                  - success
+                  - result
+                  properties:
+                    success:
+                      type: boolean
+                    result:
+                      additionalProperties: {}
+        default:
+          description: generic error response
+          headers:
+            Direktiv-ErrorCode:
+              type: string
+            Direktiv-ErrorMessage:
+              type: string
+          schema:
+            $ref: "#/definitions/error"
+definitions:
+  direktivFile:
+    type: object
+    x-go-type:
+      type: DirektivFile
+      import:
+        package: github.com/direktiv/apps/go/pkg/apps 
+  error:
+    type: object
+    required:
+      - errorCode
+      - errorMessage
+    properties:
+      errorCode:
+        type: string
+      errorMessage:
+        type: string
