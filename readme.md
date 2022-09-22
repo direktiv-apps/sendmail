@@ -1,10 +1,10 @@
 
 # sendmail 1.0
 
-Run sendmail in Direktiv
+Sending emails via SMTP
 
 ---
-- #### Categories: unknown
+- #### Categories: social
 - #### Image: gcr.io/direktiv/functions/sendmail 
 - #### License: [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 - #### Issue Tracking: https://github.com/direktiv-apps/sendmail/issues
@@ -14,7 +14,9 @@ Run sendmail in Direktiv
 
 ## About sendmail
 
-Run sendmail in Direktiv as a function
+This function uses s-nail to send emails via SMTP. It supports CC, BCC and attachments. 
+It is required to name the message `message`. Alternatively the message can be a Direktiv attribute stored as `message`.
+For Gmail an `App password` has to be created under the account using this function: (Google Account Admin)[https://myaccount.google.com/security].
 
 ### Example(s)
   #### Function Configuration
@@ -24,29 +26,62 @@ functions:
   image: gcr.io/direktiv/functions/sendmail:1.0
   type: knative-workflow
 ```
-   #### Basic
+   #### Basic Email
 ```yaml
+- id: values
+  type: noop
+  transform:
+    name: Direktiv
+  transition: sendmail
 - id: sendmail
   type: action
   action:
     function: sendmail
+    secrets: ["smtppwd"]
     input: 
-      commands:
-      - command: Example of running sendmail
+      smtp:
+        server: smtp.gmail.com:587
+        user: jens.gerke@direktiv.io
+        password: jq(.secrets.smtppwd)
+      emails:
+      - from: Jens Gerke<jens.gerke@direktiv.io>
+        to:
+        - jens.gerke@direktiv.io
+        cc:
+        - jens.gerke@direktiv.io
+        subject: This Is A Message
+        message:
+          name: message
+          data: |-
+            Hello jq(.name),
+
+            this is an email.
+
+            Good Bye
 ```
-   #### Advanced
+   #### Emails with attachment
 ```yaml
 - id: sendmail
   type: action
   action:
     function: sendmail
+    secrets: ["smtppwd"]
     input: 
-      files:
-      - name: hello.txt
-        data: Hello World
-        mode: '0755'
-      commands:
-      - command: Example of running sendmail
+      smtp:
+        server: smtp.gmail.com:587
+        user: jens.gerke@direktiv.io
+        password: jq(.secrets.smtppwd)
+      emails:
+      - from: Jens Gerke<jens.gerke@direktiv.io>
+        to: 
+        - jens.gerke@direktiv.io
+        attachments:
+        - message
+        subject: This Is A Message
+        message:
+          name: message
+          data: |-
+            This is the text and the attachment
 ```
 
    ### Secrets
@@ -67,7 +102,7 @@ functions:
 [PostParamsBody](#post-params-body)
 
 ### Response
-  List of executed commands.
+  Output of executed email commands.
 #### Reponse Types
     
   
@@ -77,10 +112,6 @@ functions:
     
 ```json
 [
-  {
-    "result": null,
-    "success": true
-  },
   {
     "result": null,
     "success": true
@@ -134,8 +165,8 @@ functions:
 
 | Name | Type | Go type | Required | Default | Description | Example |
 |------|------|---------|:--------:| ------- |-------------|---------|
-| emails | [][PostParamsBodyEmailsItems](#post-params-body-emails-items)| `[]*PostParamsBodyEmailsItems` |  | | List of emails to send. |  |
-| smtp | [PostParamsBodySMTP](#post-params-body-smtp)| `PostParamsBodySMTP` |  | |  |  |
+| emails | [][PostParamsBodyEmailsItems](#post-params-body-emails-items)| `[]*PostParamsBodyEmailsItems` | ✓ | | List of emails to send. |  |
+| smtp | [PostParamsBodySMTP](#post-params-body-smtp)| `PostParamsBodySMTP` | ✓ | |  |  |
 
 
 #### <span id="post-params-body-emails-items"></span> postParamsBodyEmailsItems
@@ -151,10 +182,11 @@ functions:
 | attachments | []string| `[]string` |  | | Files to attach to the email. Can be provided with Direktiv action `files` |  |
 | bcc | []string| `[]string` |  | | Email addresses to send email to (blind copy) |  |
 | cc | []string| `[]string` |  | | Email addresses to send email to (carbon copy) |  |
-| from | string| `string` |  | | Name used as `from` value, e.g. "My Name\<myname@direktiv.io\>" | `alue, e.g. \"My Name\\\u003cmyname@direktiv.io\\\u003e\` |
-| message | string| `string` |  | | Email message. JQ can be used in the text. |  |
+| from | string| `string` | ✓ | | Name used as `from` value, e.g. "My Name\<myname@direktiv.io\>" |  |
+| message | [DirektivFile](#direktiv-file)| `apps.DirektivFile` |  | |  |  |
 | subject | string| `string` |  | | Subject of the email |  |
-| to | []string| `[]string` |  | | Email addresses to send email to |  |
+| to | []string| `[]string` | ✓ | | Email addresses to send email to |  |
+| verbose | boolean| `bool` |  | | Enable debug output |  |
 
 
 #### <span id="post-params-body-smtp"></span> postParamsBodySmtp
@@ -167,8 +199,8 @@ functions:
 
 | Name | Type | Go type | Required | Default | Description | Example |
 |------|------|---------|:--------:| ------- |-------------|---------|
-| password | string| `string` |  | |  |  |
-| server | string| `string` |  | | SMTP server address | `smtp.sendgrid.net:587` |
-| user | string| `string` |  | |  |  |
+| password | string| `string` | ✓ | | Password for the SMTP server |  |
+| server | string| `string` | ✓ | | SMTP server address | `smtp.sendgrid.net:587` |
+| user | string| `string` | ✓ | | User name for the SMTP server |  |
 
  

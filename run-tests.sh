@@ -5,9 +5,9 @@ if [[ -z "${DIREKTIV_TEST_URL}" ]]; then
 	DIREKTIV_TEST_URL="http://localhost:9191"
 fi
 
-if [[ -z "${DIREKTIV_SECRET_sendmailSecret}" ]]; then
-	echo "Secret sendmailSecret is required, set it with DIREKTIV_SECRET_sendmailSecret"
+if [[ -z "${DIREKTIV_SECRET_smtppwd}" ]]; then
+	echo "Secret smtppwd is required, set it with DIREKTIV_SECRET_smtppwd"
 	exit 1
 fi
 
-docker run --network=host -v `pwd`/tests/:/tests direktiv/karate java -DtestURL=${DIREKTIV_TEST_URL} -Dlogback.configurationFile=/logging.xml -DsendmailSecret="${DIREKTIV_SECRET_sendmailSecret}"  -jar /karate.jar /tests/v1.0/karate.yaml.test.feature ${*:1}
+docker run --network=host -v `pwd`/tests/:/tests direktiv/karate java -DtestURL=${DIREKTIV_TEST_URL} -Dlogback.configurationFile=/logging.xml -Dsmtppwd="${DIREKTIV_SECRET_smtppwd}"  -jar /karate.jar /tests/v1.0/karate.yaml.test.feature ${*:1}

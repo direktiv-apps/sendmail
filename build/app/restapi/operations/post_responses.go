@@ -17,7 +17,7 @@ import (
 const PostOKCode int = 200
 
 /*
-PostOK List of executed commands.
+PostOK Output of executed email commands.
 
 swagger:response postOK
 */

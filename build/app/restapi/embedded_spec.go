@@ -29,17 +29,17 @@ func init() {
   ],
   "swagger": "2.0",
   "info": {
-    "description": "Run sendmail in Direktiv",
+    "description": "Sending emails via SMTP",
     "title": "sendmail",
     "version": "1.0",
     "x-direktiv-meta": {
       "categories": [
-        "unknown"
+        "social"
       ],
       "container": "gcr.io/direktiv/functions/sendmail",
       "issues": "https://github.com/direktiv-apps/sendmail/issues",
       "license": "[Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0)",
-      "long-description": "Run sendmail in Direktiv as a function",
+      "long-description": "This function uses s-nail to send emails via SMTP. It supports CC, BCC and attachments. \nIt is required to name the message ` + "`" + `message` + "`" + `. Alternatively the message can be a Direktiv attribute stored as ` + "`" + `message` + "`" + `.\nFor Gmail an ` + "`" + `App password` + "`" + ` has to be created under the account using this function: (Google Account Admin)[https://myaccount.google.com/security].",
       "maintainer": "[direktiv.io](https://www.direktiv.io) ",
       "url": "https://github.com/direktiv-apps/sendmail"
     }
@@ -157,7 +157,7 @@ func init() {
         ],
         "responses": {
           "200": {
-            "description": "List of executed commands.",
+            "description": "Output of executed email commands.",
             "schema": {
               "type": "object",
               "properties": {
@@ -183,10 +183,6 @@ func init() {
             },
             "examples": {
               "sendmail": [
-                {
-                  "result": null,
-                  "success": true
-                },
                 {
                   "result": null,
                   "success": true
@@ -222,12 +218,13 @@ func init() {
               "env": [
                 "MAILRC=account.config"
               ],
-              "exec": "bash -c 'cat message | s-nail -v -r \"{{ .Item.From }}\"  -A mail -s \"{{ .Item.Subject }}\"  \n{{- range $i, $a := .Item.To }} {{ $a }} {{- end }}'",
+              "exec": "bash -c 'cat message | s-nail {{- if .Item.Verbose }} -vv {{- end }} -r \"{{ .Item.From }}\" -A mail {{- if .Item.Subject }} -s \"{{ .Item.Subject }}\" {{- end }} \n{{- range $i, $a := .Item.Bcc }} -b {{ $a }} {{- end }}\n{{- range $i, $a := .Item.Cc }} -c {{ $a }} {{- end }}\n{{- range $i, $a := .Item.Attachments }} -a {{ $a }} {{- end }}\n{{- range $i, $a := .Item.To }} {{ $a }} {{- end }}'",
               "loop": ".Emails",
               "print": true,
               "silent": false
             }
-          ]
+          ],
+          "output": "{\n  \"sendmail\": {{ index . 1 | toJson }}\n}\n"
         },
         "x-direktiv-errors": {
           "io.direktiv.command.error": "Command execution failed",
@@ -236,12 +233,12 @@ func init() {
         },
         "x-direktiv-examples": [
           {
-            "content": "- id: sendmail\n  type: action\n  action:\n    function: sendmail\n    input: \n      commands:\n      - command: Example of running sendmail",
-            "title": "Basic"
+            "content": "- id: values\n  type: noop\n  transform:\n    name: Direktiv\n  transition: sendmail\n- id: sendmail\n  type: action\n  action:\n    function: sendmail\n    secrets: [\"smtppwd\"]\n    input: \n      smtp:\n        server: smtp.gmail.com:587\n        user: jens.gerke@direktiv.io\n        password: jq(.secrets.smtppwd)\n      emails:\n      - from: Jens Gerke\u003cjens.gerke@direktiv.io\u003e\n        to:\n        - jens.gerke@direktiv.io\n        cc:\n        - jens.gerke@direktiv.io\n        subject: This Is A Message\n        message:\n          name: message\n          data: |-\n            Hello jq(.name),\n\n            this is an email.\n\n            Good Bye",
+            "title": "Basic Email"
           },
           {
-            "content": "- id: sendmail\n  type: action\n  action:\n    function: sendmail\n    input: \n      files:\n      - name: hello.txt\n        data: Hello World\n        mode: '0755'\n      commands:\n      - command: Example of running sendmail",
-            "title": "Advanced"
+            "content": "- id: sendmail\n  type: action\n  action:\n    function: sendmail\n    secrets: [\"smtppwd\"]\n    input: \n      smtp:\n        server: smtp.gmail.com:587\n        user: jens.gerke@direktiv.io\n        password: jq(.secrets.smtppwd)\n      emails:\n      - from: Jens Gerke\u003cjens.gerke@direktiv.io\u003e\n        to: \n        - jens.gerke@direktiv.io\n        attachments:\n        - message\n        subject: This Is A Message\n        message:\n          name: message\n          data: |-\n            This is the text and the attachment",
+            "title": "Emails with attachment"
           }
         ],
         "x-direktiv-function": "functions:\n- id: sendmail\n  image: gcr.io/direktiv/functions/sendmail:1.0\n  type: knative-workflow",
@@ -311,17 +308,17 @@ func init() {
   ],
   "swagger": "2.0",
   "info": {
-    "description": "Run sendmail in Direktiv",
+    "description": "Sending emails via SMTP",
     "title": "sendmail",
     "version": "1.0",
     "x-direktiv-meta": {
       "categories": [
-        "unknown"
+        "social"
       ],
       "container": "gcr.io/direktiv/functions/sendmail",
       "issues": "https://github.com/direktiv-apps/sendmail/issues",
       "license": "[Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0)",
-      "long-description": "Run sendmail in Direktiv as a function",
+      "long-description": "This function uses s-nail to send emails via SMTP. It supports CC, BCC and attachments. \nIt is required to name the message ` + "`" + `message` + "`" + `. Alternatively the message can be a Direktiv attribute stored as ` + "`" + `message` + "`" + `.\nFor Gmail an ` + "`" + `App password` + "`" + ` has to be created under the account using this function: (Google Account Admin)[https://myaccount.google.com/security].",
       "maintainer": "[direktiv.io](https://www.direktiv.io) ",
       "url": "https://github.com/direktiv-apps/sendmail"
     }
@@ -354,16 +351,12 @@ func init() {
         ],
         "responses": {
           "200": {
-            "description": "List of executed commands.",
+            "description": "Output of executed email commands.",
             "schema": {
               "$ref": "#/definitions/postOKBody"
             },
             "examples": {
               "sendmail": [
-                {
-                  "result": null,
-                  "success": true
-                },
                 {
                   "result": null,
                   "success": true
@@ -399,12 +392,13 @@ func init() {
               "env": [
                 "MAILRC=account.config"
               ],
-              "exec": "bash -c 'cat message | s-nail -v -r \"{{ .Item.From }}\"  -A mail -s \"{{ .Item.Subject }}\"  \n{{- range $i, $a := .Item.To }} {{ $a }} {{- end }}'",
+              "exec": "bash -c 'cat message | s-nail {{- if .Item.Verbose }} -vv {{- end }} -r \"{{ .Item.From }}\" -A mail {{- if .Item.Subject }} -s \"{{ .Item.Subject }}\" {{- end }} \n{{- range $i, $a := .Item.Bcc }} -b {{ $a }} {{- end }}\n{{- range $i, $a := .Item.Cc }} -c {{ $a }} {{- end }}\n{{- range $i, $a := .Item.Attachments }} -a {{ $a }} {{- end }}\n{{- range $i, $a := .Item.To }} {{ $a }} {{- end }}'",
               "loop": ".Emails",
               "print": true,
               "silent": false
             }
-          ]
+          ],
+          "output": "{\n  \"sendmail\": {{ index . 1 | toJson }}\n}\n"
         },
         "x-direktiv-errors": {
           "io.direktiv.command.error": "Command execution failed",
@@ -413,12 +407,12 @@ func init() {
         },
         "x-direktiv-examples": [
           {
-            "content": "- id: sendmail\n  type: action\n  action:\n    function: sendmail\n    input: \n      commands:\n      - command: Example of running sendmail",
-            "title": "Basic"
+            "content": "- id: values\n  type: noop\n  transform:\n    name: Direktiv\n  transition: sendmail\n- id: sendmail\n  type: action\n  action:\n    function: sendmail\n    secrets: [\"smtppwd\"]\n    input: \n      smtp:\n        server: smtp.gmail.com:587\n        user: jens.gerke@direktiv.io\n        password: jq(.secrets.smtppwd)\n      emails:\n      - from: Jens Gerke\u003cjens.gerke@direktiv.io\u003e\n        to:\n        - jens.gerke@direktiv.io\n        cc:\n        - jens.gerke@direktiv.io\n        subject: This Is A Message\n        message:\n          name: message\n          data: |-\n            Hello jq(.name),\n\n            this is an email.\n\n            Good Bye",
+            "title": "Basic Email"
           },
           {
-            "content": "- id: sendmail\n  type: action\n  action:\n    function: sendmail\n    input: \n      files:\n      - name: hello.txt\n        data: Hello World\n        mode: '0755'\n      commands:\n      - command: Example of running sendmail",
-            "title": "Advanced"
+            "content": "- id: sendmail\n  type: action\n  action:\n    function: sendmail\n    secrets: [\"smtppwd\"]\n    input: \n      smtp:\n        server: smtp.gmail.com:587\n        user: jens.gerke@direktiv.io\n        password: jq(.secrets.smtppwd)\n      emails:\n      - from: Jens Gerke\u003cjens.gerke@direktiv.io\u003e\n        to: \n        - jens.gerke@direktiv.io\n        attachments:\n        - message\n        subject: This Is A Message\n        message:\n          name: message\n          data: |-\n            This is the text and the attachment",
+            "title": "Emails with attachment"
           }
         ],
         "x-direktiv-function": "functions:\n- id: sendmail\n  image: gcr.io/direktiv/functions/sendmail:1.0\n  type: knative-workflow",

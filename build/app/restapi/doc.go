@@ -2,7 +2,7 @@
 
 // Package restapi sendmail
 //
-//	Run sendmail in Direktiv
+//	Sending emails via SMTP
 //	Schemes:
 //	  http
 //	Host: localhost

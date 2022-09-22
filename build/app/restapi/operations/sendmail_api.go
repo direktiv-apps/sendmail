@@ -51,7 +51,7 @@ func NewSendmailAPI(spec *loads.Document) *SendmailAPI {
 	}
 }
 
-/*SendmailAPI Run sendmail in Direktiv */
+/*SendmailAPI Sending emails via SMTP */
 type SendmailAPI struct {
 	spec            *loads.Document
 	context         *middleware.Context

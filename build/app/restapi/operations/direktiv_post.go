@@ -2,7 +2,6 @@ package operations
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strings"
 	"sync"
@@ -141,10 +140,15 @@ func PostDirektivHandle(params PostParams) middleware.Responder {
 	paramsCollector = append(paramsCollector, ret)
 	accParams.Commands = paramsCollector
 
-	responseBytes, err := json.Marshal(responses)
+	s, err := templateString(`{
+  "sendmail": {{ index . 1 | toJson }}
+}
+`, responses)
 	if err != nil {
 		return generateError(outErr, err)
 	}
+
+	responseBytes := []byte(s)
 
 	// validate
 	resp.UnmarshalBinary(responseBytes)
@@ -214,7 +218,10 @@ func runCommand1(ctx context.Context,
 			params.DirektivDir,
 		}
 
-		cmd, err := templateString(`bash -c 'cat message | s-nail -v -r "{{ .Item.From }}"  -A mail -s "{{ .Item.Subject }}"  
+		cmd, err := templateString(`bash -c 'cat message | s-nail {{- if .Item.Verbose }} -vv {{- end }} -r "{{ .Item.From }}" -A mail {{- if .Item.Subject }} -s "{{ .Item.Subject }}" {{- end }} 
+{{- range $i, $a := .Item.Bcc }} -b {{ $a }} {{- end }}
+{{- range $i, $a := .Item.Cc }} -c {{ $a }} {{- end }}
+{{- range $i, $a := .Item.Attachments }} -a {{ $a }} {{- end }}
 {{- range $i, $a := .Item.To }} {{ $a }} {{- end }}'`, ls)
 		if err != nil {
 			ir := make(map[string]interface{})

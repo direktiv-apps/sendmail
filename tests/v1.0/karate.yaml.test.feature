@@ -16,8 +16,8 @@ Scenario: get request
 	"""
 	{
 		"smtp": {
-			"server": "smtp.sendgrid.net:587",
-			"user": "apikey",
+			"server": "smtp.gmail.com:587",
+			"user": "jens.gerke@direktiv.io",
 			"password": "#(smtppwd)"
 		},
 		"emails": [
@@ -26,6 +26,16 @@ Scenario: get request
 				"to": [
 					"gerke74@gmail.com"
 				],
+				"bcc": [
+					"jens.gerke@direktiv.io"
+				],
+				"cc": [
+					"jgerke74@gmail.com"
+				],
+				"attachments": [
+					"message"
+				],
+				"verbose": true,
 				"subject": "This Is A Message",
 				"message": {
 					"name": "message",
@@ -37,15 +47,15 @@ Scenario: get request
 	"""
 	When method POST
 	Then status 200
-	# And match $ ==
-	# """
-	# {
-	# "sendmail": [
-	# {
-	# 	"result": "#notnull",
-	# 	"success": true
-	# }
-	# ]
-	# }
-	# """
+	And match $ ==
+	"""
+	{
+	"sendmail": [
+	{
+		"result": "#notnull",
+		"success": true
+	}
+	]
+	}
+	"""
 	
