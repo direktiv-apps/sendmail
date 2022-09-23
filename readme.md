@@ -42,15 +42,15 @@ functions:
     secrets: ["smtppwd"]
     input: 
       smtp:
-        server: smtp.gmail.com:587
-        user: jens.gerke@direktiv.io
+        server: smtp.server.com:587
+        user: myuser@myemail.com
         password: jq(.secrets.smtppwd)
       emails:
-      - from: Jens Gerke<jens.gerke@direktiv.io>
+      - from: My User<myuser@myemail.com>
         to:
-        - jens.gerke@direktiv.io
+        - user1@emailtest.com
         cc:
-        - jens.gerke@direktiv.io
+        - user2@emailtest.com
         subject: This Is A Message
         message:
           name: message
@@ -60,6 +60,8 @@ functions:
             this is an email.
 
             Good Bye
+  catch:
+  - error: "*"
 ```
    #### Emails with attachment
 ```yaml
@@ -70,13 +72,13 @@ functions:
     secrets: ["smtppwd"]
     input: 
       smtp:
-        server: smtp.gmail.com:587
-        user: jens.gerke@direktiv.io
+        server: smtp.server.com:587
+        user: myuser@myemail.com
         password: jq(.secrets.smtppwd)
       emails:
-      - from: Jens Gerke<jens.gerke@direktiv.io>
+      - from: My User<myuser@myemail.com>
         to: 
-        - jens.gerke@direktiv.io
+        - user1@emailtest.com
         attachments:
         - message
         subject: This Is A Message
@@ -84,6 +86,8 @@ functions:
           name: message
           data: |-
             This is the text and the attachment
+  catch:
+  - error: "*"
 ```
 
    ### Secrets

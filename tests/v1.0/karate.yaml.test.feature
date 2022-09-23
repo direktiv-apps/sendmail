@@ -5,7 +5,7 @@ Feature: Basic
 Background:
 * def smtppwd = karate.properties['smtppwd']
 
-Scenario: get request
+Scenario: sendmail
 
 	Given url karate.properties['testURL']
 
@@ -24,13 +24,13 @@ Scenario: get request
 			{
 				"from": "Jens Gerke<jens.gerke@direktiv.io>",
 				"to": [
-					"gerke74@gmail.com"
+					"jens.gerke@direktiv.io"
 				],
 				"bcc": [
 					"jens.gerke@direktiv.io"
 				],
 				"cc": [
-					"jgerke74@gmail.com"
+					"jens.gerke@direktiv.io"
 				],
 				"attachments": [
 					"message"
