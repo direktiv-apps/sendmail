@@ -15,8 +15,10 @@ Sending emails via SMTP
 ## About sendmail
 
 This function uses s-nail to send emails via SMTP. It supports CC, BCC and attachments. 
-It is required to name the message `message`. Alternatively the message can be a Direktiv attribute stored as `message`.
-For Gmail an `App password` has to be created under the account using this function: (Google Account Admin)[https://myaccount.google.com/security].
+
+It is required to name the message `message` (see examples). Alternatively the message can be a Direktiv attribute stored as `message`.
+
+For Gmail an `App password` has to be created under the account using this function: [Google Account Admin](https://myaccount.google.com/security).
 
 ### Example(s)
   #### Function Configuration

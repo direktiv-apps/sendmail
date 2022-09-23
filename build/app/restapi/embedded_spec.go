@@ -39,7 +39,7 @@ func init() {
       "container": "gcr.io/direktiv/functions/sendmail",
       "issues": "https://github.com/direktiv-apps/sendmail/issues",
       "license": "[Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0)",
-      "long-description": "This function uses s-nail to send emails via SMTP. It supports CC, BCC and attachments. \nIt is required to name the message ` + "`" + `message` + "`" + `. Alternatively the message can be a Direktiv attribute stored as ` + "`" + `message` + "`" + `.\nFor Gmail an ` + "`" + `App password` + "`" + ` has to be created under the account using this function: (Google Account Admin)[https://myaccount.google.com/security].",
+      "long-description": "This function uses s-nail to send emails via SMTP. It supports CC, BCC and attachments. \n\nIt is required to name the message ` + "`" + `message` + "`" + ` (see examples). Alternatively the message can be a Direktiv attribute stored as ` + "`" + `message` + "`" + `.\n\nFor Gmail an ` + "`" + `App password` + "`" + ` has to be created under the account using this function: [Google Account Admin](https://myaccount.google.com/security).",
       "maintainer": "[direktiv.io](https://www.direktiv.io) ",
       "url": "https://github.com/direktiv-apps/sendmail"
     }
@@ -318,7 +318,7 @@ func init() {
       "container": "gcr.io/direktiv/functions/sendmail",
       "issues": "https://github.com/direktiv-apps/sendmail/issues",
       "license": "[Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0)",
-      "long-description": "This function uses s-nail to send emails via SMTP. It supports CC, BCC and attachments. \nIt is required to name the message ` + "`" + `message` + "`" + `. Alternatively the message can be a Direktiv attribute stored as ` + "`" + `message` + "`" + `.\nFor Gmail an ` + "`" + `App password` + "`" + ` has to be created under the account using this function: (Google Account Admin)[https://myaccount.google.com/security].",
+      "long-description": "This function uses s-nail to send emails via SMTP. It supports CC, BCC and attachments. \n\nIt is required to name the message ` + "`" + `message` + "`" + ` (see examples). Alternatively the message can be a Direktiv attribute stored as ` + "`" + `message` + "`" + `.\n\nFor Gmail an ` + "`" + `App password` + "`" + ` has to be created under the account using this function: [Google Account Admin](https://myaccount.google.com/security).",
       "maintainer": "[direktiv.io](https://www.direktiv.io) ",
       "url": "https://github.com/direktiv-apps/sendmail"
     }
