@@ -5,21 +5,60 @@ functions:
   image: gcr.io/direktiv/functions/sendmail:test
 states:
 - id: state0
+  type: noop
+  action: null
+  transform:
+    name: Direktiv
+  transition: sendmail
+- id: sendmail
   type: action
+  catch:
+  - error: '*'
   action:
     function: sendmail
     input:
-      commands:
-      - command: Example of running sendmail
+      emails:
+      - cc:
+        - user2@emailtest.com
+        from: My User<myuser@myemail.com>
+        message:
+          data: |-
+            Hello jq(.name),
+
+            this is an email.
+
+            Good Bye
+          name: message
+        subject: This Is A Message
+        to:
+        - user1@emailtest.com
+      smtp:
+        password: jq(.secrets.smtppwd)
+        server: smtp.server.com:587
+        user: myuser@myemail.com
+    secrets:
+    - smtppwd
   transition: state1
 - id: state1
   type: action
+  catch:
+  - error: '*'
   action:
     function: sendmail
     input:
-      commands:
-      - command: Example of running sendmail
-      files:
-      - data: Hello World
-        mode: "0755"
-        name: hello.txt
+      emails:
+      - attachments:
+        - message
+        from: My User<myuser@myemail.com>
+        message:
+          data: This is the text and the attachment
+          name: message
+        subject: This Is A Message
+        to:
+        - user1@emailtest.com
+      smtp:
+        password: jq(.secrets.smtppwd)
+        server: smtp.server.com:587
+        user: myuser@myemail.com
+    secrets:
+    - smtppwd
