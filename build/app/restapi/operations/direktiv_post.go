@@ -10,6 +10,11 @@ import (
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/strfmt"
 
+	// custom function imports
+	// end
+	// custom function imports
+	// end
+
 	"app/models"
 )
 
@@ -79,7 +84,6 @@ func PostDirektivHandle(params PostParams) middleware.Responder {
 		nil,
 		ri.Dir(),
 	}
-
 	ret, err = runCommand0(ctx, accParams, ri)
 
 	responses = append(responses, ret)
@@ -110,7 +114,6 @@ func PostDirektivHandle(params PostParams) middleware.Responder {
 
 	paramsCollector = append(paramsCollector, ret)
 	accParams.Commands = paramsCollector
-
 	ret, err = runCommand1(ctx, accParams, ri)
 
 	responses = append(responses, ret)
