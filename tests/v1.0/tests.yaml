@@ -6,7 +6,6 @@ functions:
 states:
 - id: state0
   type: noop
-  action: null
   transform:
     name: Direktiv
   transition: sendmail

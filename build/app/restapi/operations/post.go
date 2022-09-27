@@ -29,10 +29,10 @@ func NewPost(ctx *middleware.Context, handler PostHandler) *Post {
 	return &Post{Context: ctx, Handler: handler}
 }
 
-/*
-	Post swagger:route POST / post
+/* Post swagger:route POST / post
 
 Post post API
+
 */
 type Post struct {
 	Context *middleware.Context
