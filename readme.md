@@ -188,6 +188,7 @@ functions:
 | attachments | []string| `[]string` |  | | Files to attach to the email. Can be provided with Direktiv action `files` |  |
 | bcc | []string| `[]string` |  | | Email addresses to send email to (blind copy) |  |
 | cc | []string| `[]string` |  | | Email addresses to send email to (carbon copy) |  |
+| contentType | string| `string` |  | `"text/plain"`| Content-Type of the message, e.g. text/html |  |
 | from | string| `string` | ✓ | | Name used as `from` value, e.g. "My Name\<myname@direktiv.io\>" |  |
 | message | [DirektivFile](#direktiv-file)| `apps.DirektivFile` |  | |  |  |
 | subject | string| `string` |  | | Subject of the email |  |

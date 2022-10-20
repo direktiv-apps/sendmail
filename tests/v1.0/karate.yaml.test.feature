@@ -35,11 +35,12 @@ Scenario: sendmail
 				"attachments": [
 					"message"
 				],
+				"contentType": "text/html",
 				"verbose": true,
 				"subject": "This Is A Message",
 				"message": {
 					"name": "message",
-					"data": "Hello World!!!\nJENS\n\t\t\tTEST ME"
+					"data": "Hello World!!!<br/>\nJENS\n\t\t\tTEST ME"
 				}
 			}
 		]

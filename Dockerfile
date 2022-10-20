@@ -21,6 +21,8 @@ RUN apt-get update && apt-get install ca-certificates -y
 
 RUN apt-get install gridsite-clients s-nail -y
 
+COPY mime.types /etc/
+
 COPY account.config /
 COPY replace.sh /
 RUN chmod 755 replace.sh

@@ -146,7 +146,7 @@ func PostDirektivHandle(params PostParams) middleware.Responder {
 	s, err := templateString(`{
   "sendmail": {{ index . 1 | toJson }}
 }
-`, responses)
+`, responses, ri.Dir())
 	if err != nil {
 		return generateError(outErr, err)
 	}
@@ -177,7 +177,7 @@ func runCommand0(ctx context.Context,
 		params.DirektivDir,
 	}
 
-	cmd, err := templateString(`/replace.sh '{{ .SMTP.Server }}' '{{ .SMTP.User }}' '{{ .SMTP.Password }}'`, at)
+	cmd, err := templateString(`/replace.sh '{{ .SMTP.Server }}' '{{ .SMTP.User }}' '{{ .SMTP.Password }}'`, at, params.DirektivDir)
 	if err != nil {
 		ri.Logger().Infof("error executing command: %v", err)
 		ir[resultKey] = err.Error()
@@ -191,7 +191,13 @@ func runCommand0(ctx context.Context,
 
 	envs := []string{}
 
-	return runCmd(ctx, cmd, envs, output, silent, print, ri)
+	workingDir, err := templateString(``, at, params.DirektivDir)
+	if err != nil {
+		ir[resultKey] = err.Error()
+		return ir, err
+	}
+
+	return runCmd(ctx, cmd, envs, output, silent, print, ri, workingDir)
 
 }
 
@@ -221,11 +227,11 @@ func runCommand1(ctx context.Context,
 			params.DirektivDir,
 		}
 
-		cmd, err := templateString(`bash -c 'cat message | s-nail {{- if .Item.Verbose }} -vv {{- end }} -r "{{ .Item.From }}" -A mail {{- if .Item.Subject }} -s "{{ .Item.Subject }}" {{- end }} 
+		cmd, err := templateString(`bash -c 'cat message | s-nail {{- if .Item.Verbose }} -vv {{- end }} -r "{{ .Item.From }}" -A mail {{- if .Item.ContentType }} -M "{{ .Item.ContentType }}" {{- end }} {{- if .Item.Subject }} -s "{{ .Item.Subject }}" {{- end }} 
 {{- range $i, $a := .Item.Bcc }} -b {{ $a }} {{- end }}
 {{- range $i, $a := .Item.Cc }} -c {{ $a }} {{- end }}
 {{- range $i, $a := .Item.Attachments }} -a {{ $a }} {{- end }}
-{{- range $i, $a := .Item.To }} {{ $a }} {{- end }}'`, ls)
+{{- range $i, $a := .Item.To }} {{ $a }} {{- end }}'`, ls, params.DirektivDir)
 		if err != nil {
 			ir := make(map[string]interface{})
 			ir[successKey] = false
@@ -240,10 +246,19 @@ func runCommand1(ctx context.Context,
 		output := ""
 
 		envs := []string{}
-		env0, _ := templateString(`MAILRC=account.config`, ls)
+		env0, _ := templateString(`MAILRC=account.config`, ls, params.DirektivDir)
 		envs = append(envs, env0)
 
-		r, err := runCmd(ctx, cmd, envs, output, silent, print, ri)
+		workingDir, err := templateString(``, ls, params.DirektivDir)
+		if err != nil {
+			ir := make(map[string]interface{})
+			ir[successKey] = false
+			ir[resultKey] = err.Error()
+			cmds = append(cmds, ir)
+			continue
+		}
+
+		r, err := runCmd(ctx, cmd, envs, output, silent, print, ri, workingDir)
 		if err != nil {
 			ir := make(map[string]interface{})
 			ir[successKey] = false

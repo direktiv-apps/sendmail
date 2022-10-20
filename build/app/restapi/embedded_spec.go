@@ -103,6 +103,11 @@ func init() {
                           "type": "string"
                         }
                       },
+                      "contentType": {
+                        "description": "Content-Type of the message, e.g. text/html",
+                        "type": "string",
+                        "default": "text/plain"
+                      },
                       "from": {
                         "description": "Name used as ` + "`" + `from` + "`" + ` value, e.g. \"My Name\\\u003cmyname@direktiv.io\\\u003e\"",
                         "type": "string"
@@ -218,7 +223,7 @@ func init() {
               "env": [
                 "MAILRC=account.config"
               ],
-              "exec": "bash -c 'cat message | s-nail {{- if .Item.Verbose }} -vv {{- end }} -r \"{{ .Item.From }}\" -A mail {{- if .Item.Subject }} -s \"{{ .Item.Subject }}\" {{- end }} \n{{- range $i, $a := .Item.Bcc }} -b {{ $a }} {{- end }}\n{{- range $i, $a := .Item.Cc }} -c {{ $a }} {{- end }}\n{{- range $i, $a := .Item.Attachments }} -a {{ $a }} {{- end }}\n{{- range $i, $a := .Item.To }} {{ $a }} {{- end }}'",
+              "exec": "bash -c 'cat message | s-nail {{- if .Item.Verbose }} -vv {{- end }} -r \"{{ .Item.From }}\" -A mail {{- if .Item.ContentType }} -M \"{{ .Item.ContentType }}\" {{- end }} {{- if .Item.Subject }} -s \"{{ .Item.Subject }}\" {{- end }} \n{{- range $i, $a := .Item.Bcc }} -b {{ $a }} {{- end }}\n{{- range $i, $a := .Item.Cc }} -c {{ $a }} {{- end }}\n{{- range $i, $a := .Item.Attachments }} -a {{ $a }} {{- end }}\n{{- range $i, $a := .Item.To }} {{ $a }} {{- end }}'",
               "loop": ".Emails",
               "print": true,
               "silent": false
@@ -392,7 +397,7 @@ func init() {
               "env": [
                 "MAILRC=account.config"
               ],
-              "exec": "bash -c 'cat message | s-nail {{- if .Item.Verbose }} -vv {{- end }} -r \"{{ .Item.From }}\" -A mail {{- if .Item.Subject }} -s \"{{ .Item.Subject }}\" {{- end }} \n{{- range $i, $a := .Item.Bcc }} -b {{ $a }} {{- end }}\n{{- range $i, $a := .Item.Cc }} -c {{ $a }} {{- end }}\n{{- range $i, $a := .Item.Attachments }} -a {{ $a }} {{- end }}\n{{- range $i, $a := .Item.To }} {{ $a }} {{- end }}'",
+              "exec": "bash -c 'cat message | s-nail {{- if .Item.Verbose }} -vv {{- end }} -r \"{{ .Item.From }}\" -A mail {{- if .Item.ContentType }} -M \"{{ .Item.ContentType }}\" {{- end }} {{- if .Item.Subject }} -s \"{{ .Item.Subject }}\" {{- end }} \n{{- range $i, $a := .Item.Bcc }} -b {{ $a }} {{- end }}\n{{- range $i, $a := .Item.Cc }} -c {{ $a }} {{- end }}\n{{- range $i, $a := .Item.Attachments }} -a {{ $a }} {{- end }}\n{{- range $i, $a := .Item.To }} {{ $a }} {{- end }}'",
               "loop": ".Emails",
               "print": true,
               "silent": false
@@ -543,6 +548,11 @@ func init() {
           "items": {
             "type": "string"
           }
+        },
+        "contentType": {
+          "description": "Content-Type of the message, e.g. text/html",
+          "type": "string",
+          "default": "text/plain"
         },
         "from": {
           "description": "Name used as ` + "`" + `from` + "`" + ` value, e.g. \"My Name\\\u003cmyname@direktiv.io\\\u003e\"",

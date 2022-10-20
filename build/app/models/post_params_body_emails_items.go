@@ -29,6 +29,9 @@ type PostParamsBodyEmailsItems struct {
 	// Email addresses to send email to (carbon copy)
 	Cc []string `json:"cc"`
 
+	// Content-Type of the message, e.g. text/html
+	ContentType *string `json:"contentType,omitempty"`
+
 	// Name used as `from` value, e.g. "My Name\<myname@direktiv.io\>"
 	// Required: true
 	From *string `json:"from"`

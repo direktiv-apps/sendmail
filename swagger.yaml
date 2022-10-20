@@ -108,6 +108,10 @@ paths:
                       description: Subject of the email
                     message:
                       $ref: '#/definitions/direktivFile'
+                    contentType:
+                      type: string
+                      description: Content-Type of the message, e.g. text/html
+                      default: text/plain
                     attachments:
                       type: array
                       items:
@@ -194,7 +198,7 @@ paths:
         - action: foreach
           loop: .Emails
           exec: |- 
-            bash -c 'cat message | s-nail {{- if .Item.Verbose }} -vv {{- end }} -r "{{ .Item.From }}" -A mail {{- if .Item.Subject }} -s "{{ .Item.Subject }}" {{- end }} 
+            bash -c 'cat message | s-nail {{- if .Item.Verbose }} -vv {{- end }} -r "{{ .Item.From }}" -A mail {{- if .Item.ContentType }} -M "{{ .Item.ContentType }}" {{- end }} {{- if .Item.Subject }} -s "{{ .Item.Subject }}" {{- end }} 
             {{- range $i, $a := .Item.Bcc }} -b {{ $a }} {{- end }}
             {{- range $i, $a := .Item.Cc }} -c {{ $a }} {{- end }}
             {{- range $i, $a := .Item.Attachments }} -a {{ $a }} {{- end }}
