@@ -1,0 +1,225 @@
+openapi: 3.0.1
+info:
+  title: sendmail
+  description: Sending emails via SMTP
+  version: "1.0"
+  x-direktiv-meta:
+    container: gcr.io/direktiv/functions/sendmail
+    maintainer: "[direktiv.io](https://www.direktiv.io) "
+    issues: https://github.com/direktiv-apps/sendmail/issues
+    url: https://github.com/direktiv-apps/sendmail
+    categories:
+    - social
+    license: "[Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0)"
+    long-description: "This function uses s-nail to send emails via SMTP. It supports\
+      \ CC, BCC and attachments. \n\nIt is required to name the message `message`\
+      \ (see examples). Alternatively the message can be a Direktiv attribute stored\
+      \ as `message`.\n\nFor Gmail an `App password` has to be created under the account\
+      \ using this function: [Google Account Admin](https://myaccount.google.com/security)."
+servers:
+- url: /
+paths:
+  /:
+    post:
+      parameters:
+      - name: Direktiv-ActionID
+        in: header
+        description: "direktiv action id is an UUID. \nFor development it can be set\
+          \ to 'development'\n"
+        schema:
+          type: string
+          default: development
+      - name: Direktiv-TempDir
+        in: header
+        description: |
+          direktiv temp dir is the working directory for that request
+          For development it can be set to e.g. '/tmp'
+        schema:
+          type: string
+          default: /tmp
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+              - emails
+              - smtp
+              type: object
+              properties:
+                smtp:
+                  required:
+                  - password
+                  - server
+                  - user
+                  type: object
+                  properties:
+                    server:
+                      type: string
+                      description: SMTP server address
+                      example: smtp.sendgrid.net:587
+                    user:
+                      type: string
+                      description: User name for the SMTP server
+                    password:
+                      type: string
+                      description: Password for the SMTP server
+                emails:
+                  type: array
+                  description: List of emails to send.
+                  items:
+                    required:
+                    - from
+                    - to
+                    type: object
+                    properties:
+                      from:
+                        type: string
+                        description: "Name used as `from` value, e.g. \"My Name\\\
+                          <myname@direktiv.io\\>\""
+                      to:
+                        type: array
+                        description: Email addresses to send email to
+                        items:
+                          type: string
+                      cc:
+                        type: array
+                        description: Email addresses to send email to (carbon copy)
+                        items:
+                          type: string
+                      bcc:
+                        type: array
+                        description: Email addresses to send email to (blind copy)
+                        items:
+                          type: string
+                      subject:
+                        type: string
+                        description: Subject of the email
+                      message:
+                        $ref: '#/components/schemas/direktivFile'
+                      contentType:
+                        type: string
+                        description: "Content-Type of the message, e.g. text/html"
+                        default: text/plain
+                      attachments:
+                        type: array
+                        description: Files to attach to the email. Can be provided
+                          with Direktiv action `files`
+                        items:
+                          type: string
+                      verbose:
+                        type: boolean
+                        description: Enable debug output
+        required: false
+      responses:
+        "200":
+          description: Output of executed email commands.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sendmail:
+                    type: array
+                    items:
+                      required:
+                      - result
+                      - success
+                      type: object
+                      properties:
+                        success:
+                          type: boolean
+                        result:
+                          type: object
+            sendmail:
+              example:
+              - result: null
+                success: true
+        default:
+          description: generic error response
+          headers:
+            Direktiv-ErrorMessage:
+              schema:
+                type: string
+            Direktiv-ErrorCode:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      x-direktiv-function: |-
+        functions:
+        - id: sendmail
+          image: gcr.io/direktiv/functions/sendmail:1.0
+          type: knative-workflow
+      x-direktiv-examples:
+      - title: Basic Email
+        content: "- id: values\n  type: noop\n  transform:\n    name: Direktiv\n \
+          \ transition: sendmail\n- id: sendmail\n  type: action\n  action:\n    function:\
+          \ sendmail\n    secrets: [\"smtppwd\"]\n    input: \n      smtp:\n     \
+          \   server: smtp.server.com:587\n        user: myuser@myemail.com\n    \
+          \    password: jq(.secrets.smtppwd)\n      emails:\n      - from: My User<myuser@myemail.com>\n\
+          \        to:\n        - user1@emailtest.com\n        cc:\n        - user2@emailtest.com\n\
+          \        subject: This Is A Message\n        message:\n          name: message\n\
+          \          data: |-\n            Hello jq(.name),\n\n            this is\
+          \ an email.\n\n            Good Bye\n  catch:\n  - error: \"*\""
+      - title: Emails with attachment
+        content: "- id: sendmail\n  type: action\n  action:\n    function: sendmail\n\
+          \    secrets: [\"smtppwd\"]\n    input: \n      smtp:\n        server: smtp.server.com:587\n\
+          \        user: myuser@myemail.com\n        password: jq(.secrets.smtppwd)\n\
+          \      emails:\n      - from: My User<myuser@myemail.com>\n        to: \n\
+          \        - user1@emailtest.com\n        attachments:\n        - message\n\
+          \        subject: This Is A Message\n        message:\n          name: message\n\
+          \          data: |-\n            This is the text and the attachment\n \
+          \ catch:\n  - error: \"*\""
+      x-direktiv-secrets:
+      - name: smtppwd
+        description: SMTP password
+      x-direktiv:
+        cmds:
+        - action: exec
+          exec: "/replace.sh '{{ .SMTP.Server }}' '{{ .SMTP.User }}' '{{ .SMTP.Password\
+            \ }}'"
+          print: false
+          silent: true
+        - action: foreach
+          loop: .Emails
+          exec: "bash -c 'cat message | s-nail {{- if .Item.Verbose }} -vv {{- end\
+            \ }} -r \"{{ .Item.From }}\" -A mail {{- if .Item.ContentType }} -M \"\
+            {{ .Item.ContentType }}\" {{- end }} {{- if .Item.Subject }} -s \"{{ .Item.Subject\
+            \ }}\" {{- end }} \n{{- range $i, $a := .Item.Bcc }} -b {{ $a }} {{- end\
+            \ }}\n{{- range $i, $a := .Item.Cc }} -c {{ $a }} {{- end }}\n{{- range\
+            \ $i, $a := .Item.Attachments }} -a {{ $a }} {{- end }}\n{{- range $i,\
+            \ $a := .Item.To }} {{ $a }} {{- end }}'"
+          env:
+          - MAILRC=account.config
+          print: true
+          silent: false
+        output: |
+          {
+            "sendmail": {{ index . 1 | toJson }}
+          }
+      x-direktiv-errors:
+        io.direktiv.command.error: Command execution failed
+        io.direktiv.output.error: Template error for output generation of the service
+        io.direktiv.ri.error: Can not create information object from request
+      x-codegen-request-body-name: body
+components:
+  schemas:
+    direktivFile:
+      type: object
+      x-go-type:
+        type: DirektivFile
+        import:
+          package: github.com/direktiv/apps/go/pkg/apps
+    error:
+      required:
+      - errorCode
+      - errorMessage
+      type: object
+      properties:
+        errorCode:
+          type: string
+        errorMessage:
+          type: string
+
